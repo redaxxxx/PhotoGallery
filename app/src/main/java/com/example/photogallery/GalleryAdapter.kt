@@ -11,7 +11,8 @@ import com.bumptech.glide.Glide
 import com.example.photogallery.databinding.ItemLayoutBinding
 import java.io.File
 
-class GalleryAdapter(var imageList: List<String>, val context:Context): RecyclerView.Adapter<GalleryAdapter.ViewHolder>() {
+class GalleryAdapter(var imageList: List<String>, val context:Context, val onclickListener: OnClickListener):
+    RecyclerView.Adapter<GalleryAdapter.ViewHolder>() {
 
     class ViewHolder( val binding: ItemLayoutBinding): RecyclerView.ViewHolder(binding.root)
 
@@ -24,10 +25,17 @@ class GalleryAdapter(var imageList: List<String>, val context:Context): Recycler
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val image_file = File(imageList[position])
-        if (image_file.exists()){
-            Glide.with(context).load(image_file).into(holder.binding.galleryImage)
+        val image = imageList[position]
+//        val image_file = File(imageList[position])
+        Glide.with(context).load(image).into(holder.binding.galleryImage)
+
+        holder.itemView.setOnClickListener {
+            onclickListener.onClick(image)
         }
+    }
+
+    class OnClickListener(val clickListener: (image: String) -> Unit){
+        fun onClick(image: String) = clickListener(image)
     }
 
 }
