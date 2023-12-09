@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.photogallery.databinding.ActivityMainBinding
+import android.Manifest
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,9 +32,9 @@ class MainActivity : AppCompatActivity() {
     private var readImagesPermissionGranted = false
     private var cameraPermissionGranted = false
 
-    private val PERMISSIONS = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE,
-        android.Manifest.permission.CAMERA)
+    private val PERMISSIONS = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.CAMERA)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,54 +42,39 @@ class MainActivity : AppCompatActivity() {
 
         image_list = ArrayList()
 
-        checkPermission()
-    }
-
-    private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()){permissions->
-        readPermissionGranted = permissions[android.Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
-        writePermissionGranted = permissions[android.Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
-        readImagesPermissionGranted = permissions[android.Manifest.permission.READ_MEDIA_IMAGES] ?: readImagesPermissionGranted
-        cameraPermissionGranted = permissions[android.Manifest.permission.CAMERA] ?: cameraPermissionGranted
-
-        if (readPermissionGranted && writePermissionGranted && cameraPermissionGranted){
+        if (allPermissionGranted()){
             loadImages()
-            Toast.makeText(this,"Read & Write Permission Granted",Toast.LENGTH_SHORT).show()
-        }else if (readPermissionGranted && readImagesPermissionGranted && cameraPermissionGranted){
-            loadImages()
-            Toast.makeText(this,"Read Images Permission Granted",Toast.LENGTH_SHORT).show()
         }else {
-            showPermissionDialog()
+            requestPermission()
+        }
+
+        binding.cameraBtn.setOnClickListener {
+            startActivity(Intent(this, CameraActivity::class.java))
         }
     }
 
-    private val activityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-        checkPermission()
+    private fun allPermissionGranted() = Constants.REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(baseContext,it) == PackageManager.PERMISSION_GRANTED
+    }
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions())
+    {permissions->
+        var permissionGranted = true
+        permissions.entries.forEach{
+            if (it.key in Constants.REQUIRED_PERMISSIONS && !it.value){
+                permissionGranted = false
+            }
+        }
+        if (!permissionGranted){
+            Toast.makeText(baseContext, "Permission request denied", Toast.LENGTH_SHORT).show()
+        }else {
+            loadImages()
+        }
+
     }
 
-    private fun checkPermission(){
-
-        val hasReadPermission = ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        val hasWritePermission = ContextCompat.checkSelfPermission(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        val hasReadImagesPermission = ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-        val hasCameraPermission = ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-
-        val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
-        readPermissionGranted = hasReadPermission || Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-        writePermissionGranted = hasWritePermission || minSdk29
-        readImagesPermissionGranted = hasReadImagesPermission || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-        cameraPermissionGranted = hasCameraPermission
-
-        if (readPermissionGranted && writePermissionGranted && cameraPermissionGranted) {
-            loadImages()
-            Toast.makeText(this,"Read & Write Permission Granted",Toast.LENGTH_SHORT).show()
-        } else if (readImagesPermissionGranted && cameraPermissionGranted) {
-            loadImages()
-            Toast.makeText(this,"Read Images Permission Granted",Toast.LENGTH_SHORT).show()
-        } else {
-            permissionLauncher.launch(PERMISSIONS)
-        }
+    private fun requestPermission(){
+        permissionLauncher.launch(Constants.REQUIRED_PERMISSIONS)
     }
 
     private fun loadImages() {
@@ -104,19 +90,5 @@ class MainActivity : AppCompatActivity() {
         binding.totalItemsTv.text = "Total items (${image_list.size})"
 
 
-    }
-    private fun showPermissionDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Permission Required")
-        builder.setMessage("Some permissions are needed to be allowed to use this features")
-        builder.setPositiveButton("Grant") { d, _ ->
-            d.cancel()
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
-            activityLauncher.launch(intent)
-        }
-        builder.setNegativeButton("Cancel") { d, _ ->
-            d.dismiss()
-        }
-        builder.show()
     }
 }

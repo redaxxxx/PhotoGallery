@@ -46,9 +46,15 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
+    //Glide
     implementation("com.github.bumptech.glide:glide:4.8.0")
 
-    // Navigation
-    implementation("androidx.navigation:navigation-fragment:2.7.5")
-    implementation("androidx.navigation:navigation-ui:2.7.5")
+    //CamerX
+    implementation ("androidx.camera:camera-core:1.2.2")
+    implementation ("androidx.camera:camera-camera2:1.2.2")
+    implementation ("androidx.camera:camera-lifecycle:1.2.2")
+    implementation ("androidx.camera:camera-video:1.2.2")
+
+    implementation ("androidx.camera:camera-view:1.2.2")
+    implementation ("androidx.camera:camera-extensions:1.2.2")
 }

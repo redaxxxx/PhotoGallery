@@ -65,8 +65,6 @@
             android:id="@+id/imageView3"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginStart="٠dp"
-            android:layout_marginEnd="٠dp"
             app:layout_constraintBottom_toBottomOf="@+id/shareIcon"
             app:layout_constraintEnd_toStartOf="@+id/detailsIcon"
             app:layout_constraintStart_toEndOf="@+id/shareIcon"
